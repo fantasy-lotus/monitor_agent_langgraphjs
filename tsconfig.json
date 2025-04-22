@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",            // 使用现代 JavaScript 特性
+    "module": "NodeNext",          // 使用 Node.js ESM 模块系统
+    "moduleResolution": "NodeNext",
+    "esModuleInterop": true,       // 允许导入 CommonJS 模块
+    "strict": true,                // 启用严格类型检查
+    "skipLibCheck": true,          // 跳过声明文件的类型检查
+    "outDir": "./dist",            // 编译输出目录
+    "sourceMap": true,             // 生成源映射以便调试
+    "declaration": true,           // 生成相应的 .d.ts 文件
+    "resolveJsonModule": true,     // 允许导入 JSON 文件
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.test.ts"]
+}
