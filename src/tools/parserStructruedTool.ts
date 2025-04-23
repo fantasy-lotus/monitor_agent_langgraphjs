@@ -7,8 +7,8 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 import { MonitorTarget } from "../types/schema";
 import { OutputParserException } from "@langchain/core/output_parsers";
 // TODO 将tool prompt和监控任务解耦，可以适配任何任务
-// 适配器：只暴露 input，schema 固定在闭包里
 export const createParserTool = (schema: z.ZodTypeAny) => {
+    // 适配器：只暴露 input，schema 固定在闭包里
   const adapter = async ({ input }: { input: string }) => {
     return await parseUserInstruction({ input, schema });
   };
