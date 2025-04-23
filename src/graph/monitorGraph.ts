@@ -4,7 +4,7 @@ import { parseUserInstruction } from "../agents/planAgent";
 import { fetchMonitoredValue } from "../agents/fetchAgent";
 import { shouldTriggerNotification } from "../agents/comparatorAgent";
 import { notifyUser } from "../agents/notifyAgent";
-import { MonitorTarget } from "../types/schema";
+import { MonitorTarget, MonitorTargetSchema } from "../types/schema";
 const StateAnnotation = Annotation.Root({
   content: Annotation<string>, // 消息内容
   target: Annotation<MonitorTarget>, // 监控目标
@@ -15,10 +15,11 @@ const StateAnnotation = Annotation.Root({
 async function planNode(state : typeof StateAnnotation.State ){
   // 从消息中提取输入内容和元数据
   const {content} = state;
-  const target = await parseUserInstruction(content);
-  return {
-    target
-  };
+  const target = await parseUserInstruction({
+    input: content,
+    schema: MonitorTargetSchema,
+  });
+  return {target};
 };
 
 async function fetchNode(state : typeof StateAnnotation.State ){
