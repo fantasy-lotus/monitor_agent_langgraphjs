@@ -21,7 +21,7 @@ const prompt = new PromptTemplate({
 "我想知道当前的金价是否低于800元，每小时检查一次"
 
 用户输入: {input}
-用户可能会前后调整监控频率或者监控目标，此时应该1️以最新的输入而不是历史输入为准
+用户可能会前后调整监控频率或者监控目标，此时应该以最新的输入而不是历史输入为准
 例如当前输入每20分钟监控，用户历史输入每5分钟监控，那么监控频率应该是20分钟一次而不是5分钟
 例如当前输入苹果公司，用户历史输入特斯拉公司，那么监控目标应该是苹果公司而不是特斯拉公司
 
@@ -30,7 +30,7 @@ const prompt = new PromptTemplate({
 如果type为crypto，symbol需要你推断出数位大写字母加密货币代码，例如比特币是BTC。
 如果用户输入缺少必要信息，请在对应字段填写null，并返回请求用户提供更多信息。
 `,
-  inputVariables: ["input","context"],
+  inputVariables: ["input"],
   partialVariables: { format_instructions: parser.getFormatInstructions() },
 });
 
@@ -53,8 +53,7 @@ export const parseUserInstruction = async (
     return res;
   } catch (err) {
     if (err instanceof OutputParserException) {
-      const promptFollowup = `你刚才的监控指令中缺少关键信息，无法解析为结构化数据。
-请补充这些信息（如价格阈值、触发方向、监控频率等）`;
+      const promptFollowup = `你刚才的监控指令中缺少关键信息，请补充这些信息（如价格阈值、触发方向、监控频率等）`;
       const userReply = await askUserInCli(promptFollowup);
       return await parseUserInstruction(userReply, [...context, input]);
     }
