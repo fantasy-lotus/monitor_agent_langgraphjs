@@ -14,7 +14,7 @@ const StateAnnotation = Annotation.Root({
 
 async function planNode(state : typeof StateAnnotation.State ){
   // 从消息中提取输入内容和元数据
-  const { content} = state;
+  const {content} = state;
   const target = await parseUserInstruction(content);
   return {
     target

@@ -20,14 +20,17 @@ const prompt = new PromptTemplate({
 "帮我监控纳指100，价格高于20000点时通知我"
 "我想知道当前的金价是否低于800元，每小时检查一次"
 
-用户输入: {input} 
+用户输入: {input}
+用户可能会前后调整监控频率或者监控目标，此时应该1️以最新的输入而不是历史输入为准
+例如当前输入每20分钟监控，用户历史输入每5分钟监控，那么监控频率应该是20分钟一次而不是5分钟
+例如当前输入苹果公司，用户历史输入特斯拉公司，那么监控目标应该是苹果公司而不是特斯拉公司
 
 请提取关键信息并根据函数定义返回结构化数据: {format_instructions}。
 注意，如果type为stock，symbol需要你推断出数位大写字母的外汇/期货合约或单公司证券，例如特斯拉是TSLA，纳指为NQUSD。
 如果type为crypto，symbol需要你推断出数位大写字母加密货币代码，例如比特币是BTC。
 如果用户输入缺少必要信息，请在对应字段填写null，并返回请求用户提供更多信息。
 `,
-  inputVariables: ["input"],
+  inputVariables: ["input","context"],
   partialVariables: { format_instructions: parser.getFormatInstructions() },
 });
 
@@ -46,7 +49,7 @@ export const parseUserInstruction = async (
   context: string[] = []
 ): Promise<MonitorTarget> => {
   try {
-    const res = await chain.invoke(input+context);
+    const res = await chain.invoke(input + "\n用户历史输入: " + context);
     return res;
   } catch (err) {
     if (err instanceof OutputParserException) {
