@@ -1,9 +1,11 @@
 // agents/planAgent.ts
-import { llm } from "../llms/openai";
+import { model } from "../llms/openai";
 import { StructuredOutputParser } from "langchain/output_parsers";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { MonitorTarget, MonitorTargetSchema } from "../types/schema";
 import { RunnableSequence } from "@langchain/core/runnables";
+import readline from "readline";
+import { OutputParserException } from "@langchain/core/output_parsers";
 
 const parser = StructuredOutputParser.fromZodSchema(MonitorTargetSchema);
 
@@ -18,14 +20,12 @@ const prompt = new PromptTemplate({
 "帮我监控纳指100，价格高于20000点时通知我"
 "我想知道当前的金价是否低于800元，每小时检查一次"
 
-用户输入: {input}
+用户输入: {input} 
 
 请提取关键信息并根据函数定义返回结构化数据: {format_instructions}。
-注意，如果type为stock，symbol需要你推断出数位大写字母的股票代码，例如特斯拉是TSLA。
+注意，如果type为stock，symbol需要你推断出数位大写字母的外汇/期货合约或单公司证券，例如特斯拉是TSLA，纳指为NQUSD。
 如果type为crypto，symbol需要你推断出数位大写字母加密货币代码，例如比特币是BTC。
-如果股票是纳指，代码为NQUSD而不是NQX。
-如果用户输入缺少必要信息，请合理推断默认值。
-如果你无法推断，请返回请求用户提供更多信息。
+如果用户输入缺少必要信息，请在对应字段填写null，并返回请求用户提供更多信息。
 `,
   inputVariables: ["input"],
   partialVariables: { format_instructions: parser.getFormatInstructions() },
@@ -36,22 +36,39 @@ const chain = RunnableSequence.from([
     input: (input: string) => ({ input }),
   },
   prompt,
-  llm,
+  model,
   parser,
 ]);
 
-// 🧠 使用 LangChain 最新 API 对用户自然语言指令进行结构化解析
+// 追问
 export const parseUserInstruction = async (
-  input: string
+  input: string,
+  context: string[] = []
 ): Promise<MonitorTarget> => {
-  console.log("解析用户指令:", input);
   try {
-    console.log("开始调用LLM...");
-    const result = await chain.invoke(input);
-    console.log("LLM调用成功，结果:", result);
-    return result;
-  } catch (error) {
-    console.error("解析指令时发生错误:", error);
-    throw error;
+    const res = await chain.invoke(input+context);
+    return res;
+  } catch (err) {
+    if (err instanceof OutputParserException) {
+      const promptFollowup = `你刚才的监控指令中缺少关键信息，无法解析为结构化数据。
+请补充这些信息（如价格阈值、触发方向、监控频率等）`;
+      const userReply = await askUserInCli(promptFollowup);
+      return await parseUserInstruction(userReply, [...context, input]);
+    }
+    throw err;
   }
+};
+
+const askUserInCli = (question: string): Promise<string> => {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+
+  return new Promise((resolve) => {
+    rl.question(`🤖 ${question}\n> `, (answer) => {
+      rl.close();
+      resolve(answer);
+    });
+  });
 };

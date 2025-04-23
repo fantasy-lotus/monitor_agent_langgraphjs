@@ -1,4 +1,4 @@
-// ✅ fetchTool.ts
+// fetchTool.ts
 import { z } from "zod";
 import { MonitorTargetSchema } from "../types/schema";
 
@@ -8,7 +8,7 @@ export const fetchSchema = z.object({
 });
 
 export const fetchByTool = async ({ type, symbol }: z.infer<typeof fetchSchema>): Promise<number> => {
-  if (type === "crypto") {
+  if (type === "crypto") {//bitcoin
     const res = await fetch("https://api.api-ninjas.com/v1/bitcoin", {
       method: "GET",
       headers: {
@@ -23,7 +23,7 @@ export const fetchByTool = async ({ type, symbol }: z.infer<typeof fetchSchema>)
     const json = await res.json();
     return parseFloat(json.price);
   }
-  else if(type === "stock") {
+  else if(type === "stock") {//stock
     const res = await fetch(`https://api.api-ninjas.com/v1/stockprice?ticker=${symbol}`, {
       method: "GET",
       headers: {
@@ -37,7 +37,7 @@ export const fetchByTool = async ({ type, symbol }: z.infer<typeof fetchSchema>)
     const json = await res.json();
     return parseFloat(json.price);
   }
-  // else if(type === "gold") {
+  // else if(type === "gold") {//need pro account
   //   const res = await fetch("https://api.api-ninjas.com/v1/goldprice", {
   //     method: "GET",
   //     headers: {

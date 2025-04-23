@@ -3,7 +3,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config(); // * init env
 const email = "lotus0721@outlook.com";
-const input = "每5分钟监控比特币，一旦高于28000就通知我，我的邮箱是" + email;
+const input = "每5分钟监控英伟达，我的邮箱是" + email;
 
 
 console.log("监控任务已启动");

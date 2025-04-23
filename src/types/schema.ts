@@ -6,7 +6,7 @@ export const MonitorTargetSchema = z.object({
   symbol: z.string(),
   threshold: z.number(),
   direction: z.enum(['above', 'below']),
-  intervalMinutes: z.number().default(5),
+  intervalMinutes: z.number(),
   notifyMethod: z.enum(['email', 'sms']).default('email'),
   notifyAddress: z.string(),
 });
