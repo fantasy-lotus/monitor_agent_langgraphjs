@@ -25,8 +25,8 @@ const brief = "summarize today hot news in 5 sentences";
 // (async () => {
 //   const graph = await monitorGraph();
 //   // 正确方式：传入格式化的对象
-//   const result = await graph.invoke({content: input});
-//   console.log("监控任务完成，结果:", result);
+//   const result = await graph.invoke({content: nput});
+//   console.log("监控任务完成，结果:", resul);
 // })();
 
 // const tool = createParserTool(MonitorTargetSchema);
@@ -92,6 +92,20 @@ const workflow = new StateGraph(MessagesAnnotation)
 
 const app = workflow.compile();
 
+// (async () => {
+//   const res = await tool.invoke({ input });
+//   console.log("解析结果:", res);
+// })();
+
+
+const search = "how to use tavily";
+import { TavilySearch } from "@langchain/tavily";
+const tool = new TavilySearch({
+  maxResults: 3,
+  includeAnswer: true,
+}
+);
+console.log(tool.maxResults);
 (async () => {
   const result = await app.invoke({ messages: [input] });
   console.log("最终结果:", result);
