@@ -49,7 +49,7 @@ export const parseUserInstruction = async (content: {
     inputVariables: ["input"],
     partialVariables: { format_instructions: parser.getFormatInstructions() },
   });
-
+  
   const chain = prompt.pipe(model).pipe(parser);
 
   try {

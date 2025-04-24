@@ -51,10 +51,8 @@ const parseUserInstruction = async (content: {
   const promptTemplate = `${PROMPT_INTRO}
     ${PROMPT_EXAMPLES}
 
-    用户输入: {input}
-
+    用户最新输入: {input}
     ${PROMPT_RULES}
-
     请提取关键信息并根据函数定义返回结构化数据: {format_instructions}。
     ${PROMPT_GUIDELINES}`;
 
@@ -74,7 +72,7 @@ const parseUserInstruction = async (content: {
       const promptFollowup = `你刚才的监控指令中缺少关键信息，请补充这些信息（如价格阈值、触发方向、监控频率等）`;
       const userReply = await askUserInCli(promptFollowup);
       return await parseUserInstruction({
-        input: userReply + "\n用户历史输入: " + input,
+        input: userReply + "\n  用户历史输入: " + input,
         schema: schema,
       });
     }
