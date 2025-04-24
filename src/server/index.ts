@@ -49,7 +49,6 @@ const parserTool = createParserTool(MonitorTargetSchema);
 
 const tools = [
   parserTool,
-  
   fetchByApiTool,
   webTool,
   tool
@@ -98,14 +97,14 @@ const app = workflow.compile();
 // })();
 
 
-const search = "how to use tavily";
-import { TavilySearch } from "@langchain/tavily";
-const tool = new TavilySearch({
-  maxResults: 3,
-  includeAnswer: true,
-}
-);
-console.log(tool.maxResults);
+// const search = "how to use tavily";
+// import { TavilySearch } from "@langchain/tavily";
+// const tool = new TavilySearch({
+//   maxResults: 3,
+//   includeAnswer: true,
+// }
+// );
+// console.log(tool.maxResults);
 (async () => {
   const result = await app.invoke({ messages: [input] });
   console.log("最终结果:", result);
