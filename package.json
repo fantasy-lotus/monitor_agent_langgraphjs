@@ -8,9 +8,10 @@
   },
   "dependencies": {
     "@langchain/community": "^0.3.41",
-    "@langchain/core": "^0.3.44",
+    "@langchain/core": "^0.3.47",
     "@langchain/langgraph": "^0.2.64",
     "@langchain/openai": "^0.5.5",
+    "@langchain/tavily": "^0.1.1",
     "@langchain/textsplitters": "^0.1.0",
     "cheerio": "^1.0.0",
     "dotenv": "^16.5.0",

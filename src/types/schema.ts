@@ -2,13 +2,12 @@
 import { z } from "zod";
 
 export const MonitorTargetSchema = z.object({
-  type: z.enum(['crypto', 'stock', 'gold']),
-  symbol: z.string(),
-  threshold: z.number(),
-  direction: z.enum(['above', 'below']),
-  intervalMinutes: z.number(),
-  notifyMethod: z.enum(['email', 'sms']).default('email'),
-  notifyAddress: z.string(),
+  name: z.string().describe("monitor name"),
+  command: z.string().describe("task command"),
+  judge: z.string().optional().describe("monitor task judge"),
+  intervalMinutes: z.number().default(20).describe("monitor task interval minutes"),
+  notifyMethod: z.enum(['email', 'sms']).default('email').describe("notify method"),
+  notifyAddress: z.string().describe("notify address"),
 });
 
 export type MonitorTarget = z.infer<typeof MonitorTargetSchema>;
