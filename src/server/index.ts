@@ -8,7 +8,7 @@ import { fetchByApiTool } from "../tools/fetchTool";
 import { TavilyExtract, TavilySearch } from "@langchain/tavily";
 // import * as tslab from "tslab";
 import { SerpAPI } from "@langchain/community/tools/serpapi";
-
+process.env.SERPAPI_API_KEY="1c74a880d1f5315d1c7a95f2c0e3da02af9ae471512a37910d3f60e9144752f1";
 const tool = new SerpAPI();
 // const drawableGraph = await graph.getGraphAsync();
 // const image = await drawableGraph.drawMermaidPng();
@@ -93,6 +93,6 @@ const workflow = new StateGraph(MessagesAnnotation)
 const app = workflow.compile();
 
 (async () => {
-  const result = await app.invoke({ messages: [brief] });
+  const result = await app.invoke({ messages: [input] });
   console.log("最终结果:", result);
 })();
