@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "@langchain/community": "^0.3.41",
-    "@langchain/core": "^0.3.47",
+    "@langchain/core": "^0.3.48",
+    "@langchain/exa": "^0.1.0",
     "@langchain/langgraph": "^0.2.64",
     "@langchain/openai": "^0.5.5",
     "@langchain/tavily": "^0.1.1",
