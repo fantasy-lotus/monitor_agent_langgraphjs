@@ -28,7 +28,7 @@ const StateAnnotation = Annotation.Root({
 });
 
 const tool = new SerpAPI(process.env.SERPAPI_API_KEY, {
-  num: "3",
+  num: "2",
   hl: "en",
   gl: "us",
 });
