@@ -8,27 +8,18 @@ import { fetchByApiTool } from "../tools/fetchTool";
 import { TavilyExtract, TavilySearch } from "@langchain/tavily";
 import { ExaSearchResults } from "@langchain/exa";
 import Exa from "exa-js";
-// import * as tslab from "tslab";
 import { SerpAPI } from "@langchain/community/tools/serpapi";
-process.env.SERPAPI_API_KEY =
-  "1c74a880d1f5315d1c7a95f2c0e3da02af9ae471512a37910d3f60e9144752f1";
-const tool = new SerpAPI();
-// const drawableGraph = await graph.getGraphAsync();
-// const image = await drawableGraph.drawMermaidPng();
-// const arrayBuffer = await image.arrayBuffer();
+import { ToolNode } from "@langchain/langgraph/prebuilt";
 
-// await tslab.display.png(new Uint8Array(arrayBuffer));
 dotenv.config(); // * init env
+const tool = new SerpAPI();
 
-const extractTool = new TavilyExtract(
-  {
-    extractDepth: "basic",
-  },
-);
+
+const extractTool = new TavilyExtract();
 const email = "lotus0721@outlook.com";
 const input = "每5分钟监控比特币价格》1000，我的邮箱是" + email;
 const search = "tell me hows the weather in beijjing now";
-const brief = "帮我获取武汉天地的房价趋势";
+const brief = "mcp是昙花一现还是业内标准";
 // console.log("监控任务已启动");
 // // 运行示例
 // (async () => {
@@ -66,15 +57,13 @@ const exaTool = new ExaSearchResults({
     image: false,
   },
 });
-const tools = [parserTool, fetchByApiTool, exaTool, extractTool, tool];
+const tools = [fetchByApiTool, exaTool, extractTool, tool];
 import {
   StateGraph,
   MessagesAnnotation,
   END,
   START,
 } from "@langchain/langgraph";
-import { ToolNode } from "@langchain/langgraph/prebuilt";
-import { time } from "console";
 
 const toolNodeForGraph = new ToolNode(tools);
 
@@ -154,13 +143,13 @@ export const testInputs = [
 ];
 
 (async () => {
-  for (const input of testInputs) {
+  // for (const input of testInputs) {
     const result = await app.invoke({
       messages: [
         { role: "system", content: systemMessage },
-        { role: "user", content: input },
+        { role: "user", content: brief },
       ],
     });
     console.log(`Input: ${input}\nResult:`, result, "\n---");
-  }
+  
 })();
