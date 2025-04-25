@@ -21,7 +21,7 @@ export const sendNotification = async ({ method, to, content }: z.infer<typeof n
     const result = await transporter.sendMail({
       from: process.env.SMTP_USER,
       to,
-      subject: "⏰ 价格触发通知",
+      subject: "Notification from Monitor",
       text: content,
     });
     if(result.accepted.length > 0) {
