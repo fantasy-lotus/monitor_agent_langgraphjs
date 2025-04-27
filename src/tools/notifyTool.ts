@@ -25,10 +25,12 @@ export const sendNotification = async ({ method, to, content }: z.infer<typeof n
       text: content,
     });
     if(result.accepted.length > 0) {
-      console.log("邮件发送成功");
+      // console.log("邮件发送成功");
     }
     else {
       console.error("邮件发送失败", result.rejected);
     }
   }
+  else
+    throw new Error("不支持的通知方式");
 };

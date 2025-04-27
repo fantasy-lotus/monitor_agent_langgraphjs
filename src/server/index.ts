@@ -1,23 +1,62 @@
-import { infoAgent, systemMessage} from "../service/monitor";
-import { MonitorTarget } from "../types/schema";
-const input = "Get a summary of the most recent us stock market news.";
+import express from "express";
+import notifyServer from "./notifyServer";
+import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import axios from "axios";
+import { Request, Response, NextFunction } from "express";
 
-const target: MonitorTarget = {
-  name: "Monitor",
-  command: input,
-  judge: ">20000",
-  intervalMinutes: 10,
-  notifyMethod: "email",
-  notifyAddress: "fzxs12345@163.com",
-};
-(async () => {
-  // for (const input of testInputs) {
-    const result = await infoAgent.invoke({
-      messages: [
-        { role: "system", content: systemMessage },
-        { role: "user", content: target.command },
-      ],
-      target: target
-    });
-    console.log(`Input: ${input}\nResult:`, result, "\n---");
-})();
+//server with tool
+const server = notifyServer;
+
+// Express + SSE setup
+const app = express();
+const transports: { [sessionId: string]: SSEServerTransport } = {};
+
+app.get("/sse", async (req, res) => {
+  const transport = new SSEServerTransport("/messages", res);
+  transports[transport.sessionId] = transport;
+
+  console.log("SSE session started:", transport.sessionId);
+
+  res.on("close", () => {
+    console.log("SSE session closed:", transport.sessionId);
+    delete transports[transport.sessionId];
+  });
+
+  res.on("error", (err) => {
+    console.error("SSE connection error:", err);
+    delete transports[transport.sessionId];
+  });
+
+  try {
+    await server.connect(transport);
+  } catch (err) {
+    console.error("Error in SSE connect:", err);
+    res.status(500).end();
+  }
+});
+
+app.post("/messages", async (req, res) => {
+  try {
+    const sessionId = req.query.sessionId as string;
+    const transport = transports[sessionId];
+
+    if (transport) {
+      await transport.handlePostMessage(req, res);
+    } else {
+      res.status(400).send("No transport found for sessionId");
+    }
+  } catch (err) {
+    console.error("Error in /notify:", err);
+    res
+      .status(500)
+      .json({ error: err instanceof Error ? err.message : String(err) });
+  }
+});
+
+interface ErrorResponse {
+  error: string;
+}
+
+const PORT = process.env.PORT || 4888;
+
+app.listen(PORT);

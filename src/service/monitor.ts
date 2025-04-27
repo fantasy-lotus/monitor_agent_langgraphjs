@@ -17,6 +17,7 @@ import {
 } from "@langchain/langgraph";
 import { BaseMessage } from "@langchain/core/messages";
 import { sendNotification } from "../tools/notifyTool";
+import { convertToOpenAITool } from "@langchain/core/utils/function_calling";
 dotenv.config(); // * init 
 const StateAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
@@ -40,6 +41,7 @@ const exaTool = new ExaSearchResults({
     image: false,
   },
 });
+const notify = convertToOpenAITool;
 const tools = [fetchByApiTool, exaTool, extractTool, tool];
 
 const toolNodeForGraph = new ToolNode(tools);
