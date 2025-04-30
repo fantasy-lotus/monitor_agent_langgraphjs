@@ -1,8 +1,8 @@
 import * as dotenv from "dotenv";
-import { MonitorTarget, MonitorTargetSchema } from "../types/schema";
-import { model } from "../llms/openai";
-import { fetchByApiTool } from "../tools/fetchTool";
-import { TavilyExtract, TavilySearch } from "@langchain/tavily";
+import { MonitorTarget } from "../types/schema.ts";
+import { model } from "../llms/openai.ts";
+import { fetchByApiTool } from "../tools/fetchTool.ts";
+import { TavilyExtract } from "@langchain/tavily";
 import { ExaSearchResults } from "@langchain/exa";
 import Exa from "exa-js";
 import { SerpAPI } from "@langchain/community/tools/serpapi";
@@ -13,18 +13,14 @@ import {
   MessagesAnnotation,
   END,
   START,
-  Messages,
 } from "@langchain/langgraph";
-import { BaseMessage } from "@langchain/core/messages";
-import { sendNotification } from "../tools/notifyTool";
-import { convertToOpenAITool } from "@langchain/core/utils/function_calling";
 dotenv.config(); // * init 
 const StateAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
   target: Annotation<MonitorTarget>, // 监控目标
 });
 
-const tool = new SerpAPI(process.env.SERPAPI_API_KEY, {
+const tool = new SerpAPI(process.env.SERPAPI_KEY, {
   num: "2",
   hl: "en",
   gl: "us",
@@ -41,7 +37,6 @@ const exaTool = new ExaSearchResults({
     image: false,
   },
 });
-const notify = convertToOpenAITool;
 const tools = [fetchByApiTool, exaTool, extractTool, tool];
 
 const toolNodeForGraph = new ToolNode(tools);
@@ -58,18 +53,9 @@ const shouldContinue = (state: typeof StateAnnotation.State) => {
   ) {
     return "tools";
   }
-  return "notify";
+  return END;
 };
 
-async function notifyNode(state: typeof StateAnnotation.State) {
-  const { target, messages } = state;
-  const message = messages[messages.length - 1];
-  await sendNotification({
-    method: target?.notifyMethod,
-    to: state.target.notifyAddress,
-    content: message.content.toString(),
-  });
-}
 
 const callModel = async (state: typeof StateAnnotation.State) => {
   const { messages } = state;
@@ -81,10 +67,8 @@ const workflow = new StateGraph(StateAnnotation)
   // Define the two nodes we will cycle between
   .addNode("agent", callModel)
   .addNode("tools", toolNodeForGraph)
-  .addNode("notify", notifyNode)
   .addEdge(START, "agent")
-  .addConditionalEdges("agent", shouldContinue, ["tools", "notify"])
-  .addEdge("notify", END)
+  .addConditionalEdges("agent", shouldContinue, ["tools", END])
   .addEdge("tools", "agent");
 
 export const infoAgent = workflow.compile();

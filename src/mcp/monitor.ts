@@ -1,40 +1,26 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { z } from "zod";
-import { infoAgent, systemMessage } from "../service/monitor";
-import { MonitorTargetSchema } from "../types/schema";
-
-// MCP 工具参数 schema
-const monitorInputSchema = z.object({
-  command: z.string().describe("用户监控请求，如：监控BTC价格"),
-  notifyMethod: z.enum(["email", "sms"]).describe("通知方式"),
-  notifyAddress: z.string().describe("通知地址"),
-});
+import { infoAgent, systemMessage } from "../service/monitor.ts";
+import { MonitorTarget, MonitorTargetSchema } from "../types/schema.ts";
+import dotenv from "dotenv";
+dotenv.config(); // * init dotenv
 
 // 创建 MCP Server
 const server = new McpServer({
   name: "MonitorMCPServer",
   version: "1.0.0",
 });
-const target: MonitorTarget = {
-  name: "Monitor",
-  command: "监控BTC价格",
-  judge: ">20000",
-  intervalMinutes: 10,
-  notifyMethod: "email",
-  notifyAddress: "fzxs12345@163.com",
-};
 
 // 注册 monitor 工具
 server.tool(
   "monitor",
-  monitorInputSchema.shape,
-  async ({ command, notifyMethod, notifyAddress }) => {
+  MonitorTargetSchema.shape,
+  async ( target: MonitorTarget) => {
     // 构造初始 state
     const state = {
       messages: [
-        { type: "system", content: systemMessage },
-        { type: "user", content: command },
+        { role: "system", content: systemMessage },
+        { role: "user", content: target.command },
       ],
       target
     };

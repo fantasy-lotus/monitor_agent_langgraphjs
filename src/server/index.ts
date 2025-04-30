@@ -2,7 +2,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-import notifyServer from "./notifyServer";
+import notifyServer from "./notifyServer.ts";
 import dotenv from "dotenv";
 dotenv.config();
 const app = express();
@@ -119,7 +119,7 @@ process.on("SIGINT", async () => {
 });
 
 // 启动服务器
-const port = process.env.PORT || 8083;
+const port = process.env.PORT || 8721;
 const server = app.listen(port, () => {
   console.log(
     `[${new Date().toISOString()}] MCP SSE 服务器已启动，地址: http://localhost:${port}`
