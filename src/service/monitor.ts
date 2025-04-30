@@ -14,7 +14,7 @@ import {
   END,
   START,
 } from "@langchain/langgraph";
-dotenv.config(); // * init 
+dotenv.config(); // * init
 const StateAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
   target: Annotation<MonitorTarget>, // 监控目标
@@ -56,7 +56,6 @@ const shouldContinue = (state: typeof StateAnnotation.State) => {
   return END;
 };
 
-
 const callModel = async (state: typeof StateAnnotation.State) => {
   const { messages } = state;
   const response = await modelWithTools.invoke(messages);
@@ -83,6 +82,7 @@ Your goals:
 - If other search tools can not return enough infomation or For complex detailed information extraction, use Tavily Extract as needed.
 - Always return clear, concise, and actionable results.
 - If information is missing, ask the user for clarification.
+- At last,you need to compare the info with judge field user input, and judge whether send notify or not.
 
 Respond in English unless the user requests otherwise.
 `;

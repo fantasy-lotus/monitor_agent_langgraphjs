@@ -15,21 +15,32 @@ const server = new McpServer({
 server.tool(
   "monitor",
   MonitorTargetSchema.shape,
-  async ( target: MonitorTarget) => {
+  async (target: MonitorTarget) => {
     // 构造初始 state
     const state = {
       messages: [
         { role: "system", content: systemMessage },
         { role: "user", content: target.command },
       ],
-      target
+      target,
     };
     // 执行监控流程
-    await infoAgent.invoke(state);
+    const result = await infoAgent.invoke(state);
+
+    // 获取最终消息（通常是数组最后一个）
+    const finalMessage = result.messages[result.messages.length - 1];
+
+    // 检查 finalMessage 是否存在且有 content
+    const finalContent = finalMessage?.content ?? "未能获取到最终信息";
+
     return {
       content: [
-        { type: "text", text: "监控流程已完成，通知已发送。" }
-      ]
+        {
+          type: "text",
+          // 使用最后一个消息的内容
+          text: "监控流程执行完毕: " + finalContent + "\n 等待发送通知...",
+        },
+      ],
     };
   }
 );
