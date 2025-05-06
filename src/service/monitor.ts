@@ -77,7 +77,7 @@ Your goals:
 - Understand the user's intent and select the most appropriate tool or combination of tools.
 - When the user provides a monitoring or alerting request, use the Instruction Parser to extract structured details.
 - For price queries, use the Price Fetcher with the correct type and symbol.
-- Time now is ${realTime},For general or open-ended questions or realtime question, use SerpAPI first to get short infomation.
+- Time now is ${realTime},For general or open-ended questions or realtime question, use SerpAPI first to get short infomation, buy iy may can't return enough infomation.
 - If you SerpAPI can not return enough infomation or For detailed web searches, use Exa Search as needed.
 - If other search tools can not return enough infomation or For complex detailed information extraction, use Tavily Extract as needed.
 - Always return clear, concise, and actionable results.

@@ -50,3 +50,5 @@ const transport = new StdioServerTransport();
 server.connect(transport);
 
 console.log("MCP Monitor Server running (STDIO)...");
+
+export default server;

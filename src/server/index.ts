@@ -2,115 +2,106 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
-import notifyServer from "./notifyServer.ts";
+import server from "../mcp/monitor.ts";
 import dotenv from "dotenv";
 dotenv.config();
 const app = express();
 app.use(
   cors({
-    origin: process.env.ALLOWED_ORIGINS?.split(",") || "*",//allowed origins
+    origin: process.env.ALLOWED_ORIGINS?.split(",") || "*", //allowed origins
     methods: ["GET", "POST"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// 存储活跃连接
-const connections = new Map();
-
-// 健康检查端点
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    version: "1.0.0",
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString(),
-    connections: connections.size,
-  });
+// 在请求入口添加日志中间件
+app.use((req, res, next) => {
+  console.info(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
 });
 
-// SSE 连接建立端点
+const transports = {
+  sse: {} as Record<string, SSEServerTransport>,
+};
+
 app.get("/sse", async (req, res) => {
-  // 实例化SSE传输对象
-  const transport = new SSEServerTransport("/messages", res);
-  // 获取sessionId
-  const sessionId = transport.sessionId;
-  console.log(`[${new Date().toISOString()}] 新的SSE连接建立: ${sessionId}`);
-
-  // 注册连接
-  connections.set(sessionId, transport);
-
-  // 连接中断处理
-  req.on("close", () => {
-    console.log(`[${new Date().toISOString()}] SSE连接关闭: ${sessionId}`);
-    connections.delete(sessionId);
+  console.info(`[${new Date().toISOString()}] [INFO] Received SSE message:`, {
+    method: req.method,
+    url: req.url,
+    query: req.query,
+    body: req.body,
+    headers: req.headers,
   });
+  // Create SSE transport for legacy clients
+  const transport = new SSEServerTransport("/messages", res);
+  transports.sse[transport.sessionId] = transport;
 
-  // 将传输对象与MCP服务器连接
-  await notifyServer.connect(transport);
-  console.log(`[${new Date().toISOString()}] MCP服务器连接成功: ${sessionId}`);
+  await server.connect(transport);
+  res.on("close", () => {
+    delete transports.sse[transport.sessionId];
+  });
 });
 
-// 接收客户端消息的端点
-app.post("/messages", async (req: Request, res: Response) => {
-  try {
-    console.log(`[${new Date().toISOString()}] 收到客户端消息:`, req.query);
-    const sessionId = req.query.sessionId as string;
-
-    // 查找对应的SSE连接并处理消息
-    if (connections.size > 0) {
-      const transport: SSEServerTransport = connections.get(
-        sessionId
-      ) as SSEServerTransport;
-      // 使用transport处理消息
-      if (transport) {
-        await transport.handlePostMessage(req, res);
-      } else {
-        throw new Error("没有活跃的SSE连接");
-      }
-    } else {
-      throw new Error("没有活跃的SSE连接");
+// Legacy message endpoint for older clients
+app.post("/messages", async (req, res) => {
+  console.info(
+    `[${new Date().toISOString()}] [INFO] Received legacy message:`,
+    {
+      method: req.method,
+      url: req.url,
+      query: req.query,
+      body: req.body,
+      headers: req.headers,
     }
-  } catch (error: any) {
-    console.error(`[${new Date().toISOString()}] 处理客户端消息失败:`, error);
-    res.status(500).json({ error: "处理消息失败", message: error.message });
+  );
+  const sessionId = req.query.sessionId as string;
+  const transport = transports.sse[sessionId];
+  if (transport) {
+    await transport.handlePostMessage(req, res, req.body);
+  } else {
+    res.status(400).send("No transport found for sessionId");
   }
+});
+
+// 错误处理
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  console.error(
+    `[${new Date().toISOString()}] [ERROR] ${req.method} ${req.url} -`,
+    err.stack || err.message
+  );
+  res.status(500).json({
+    jsonrpc: "2.0",
+    error: {
+      code: -32603,
+      message: "Internal server error",
+    },
+    id: null,
+  });
 });
 
 // 优雅关闭所有连接
 async function closeAllConnections() {
+  const sseConnections = transports.sse; // 获取 SSE 连接对象
+  const connectionCount = Object.keys(sseConnections).length; // 获取连接数量
   console.log(
-    `[${new Date().toISOString()}] 关闭所有连接 (${connections.size}个)`
+    `[${new Date().toISOString()}] 关闭所有连接 (${connectionCount}个)`
   );
-  for (const [id, transport] of connections.entries()) {
+  // 遍历 SSE 连接
+  for (const [id, transport] of Object.entries(sseConnections)) {
     try {
-      // 发送关闭事件
-      transport.res.write(
-        'event: server_shutdown\ndata: {"reason": "Server is shutting down"}\n\n'
-      );
-      transport.res.end();
+      // 关闭 SSE 连接
+      if (typeof transport.close === "function") {
+        await transport.close();
+      }
       console.log(`[${new Date().toISOString()}] 已关闭连接: ${id}`);
     } catch (error) {
       console.error(`[${new Date().toISOString()}] 关闭连接失败: ${id}`, error);
     }
   }
-  connections.clear();
+  transports.sse = {}; // 清空 SSE 连接记录
 }
-
-// 错误处理
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(`[${new Date().toISOString()}] 未处理的异常:`, err);
-  res.status(500).json({ error: "服务器内部错误" });
-});
-
-// 优雅关闭
-process.on("SIGTERM", async () => {
-  console.log(`[${new Date().toISOString()}] 接收到SIGTERM信号，准备关闭`);
-  await closeAllConnections();
-  server.close(() => {
-    console.log(`[${new Date().toISOString()}] 服务器已关闭`);
-    process.exit(0);
-  });
-});
 
 process.on("SIGINT", async () => {
   console.log(`[${new Date().toISOString()}] 接收到SIGINT信号，准备关闭`);
@@ -120,7 +111,7 @@ process.on("SIGINT", async () => {
 
 // 启动服务器
 const port = process.env.PORT || 8721;
-const server = app.listen(port, () => {
+const myServer = app.listen(port, () => {
   console.log(
     `[${new Date().toISOString()}] MCP SSE 服务器已启动，地址: http://localhost:${port}`
   );
