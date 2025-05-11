@@ -1,17 +1,17 @@
-import { infoAgent, systemMessage } from "../service/monitor.ts";
-import { MonitorTarget } from "../types/schema.ts";
-const target: MonitorTarget = {
-  name: "Monitor",
-  command: "监控BTC价格",
-  judge: ">20000",
-  intervalMinutes: 10,
-  notifyMethod: "email",
-  notifyAddress: "fzxs12345@163.com",
+import { infoAgent, systemMessage } from "../service/fetchInfo.ts";
+import { FetchInfo, fetchInfoToString } from "../types/fetch.ts";
+
+const target: FetchInfo = {
+  command: "summary latest world hot news",
+  complexity: "simple",
+  type: "news",
 };
-infoAgent.invoke({
+const res = await infoAgent.invoke({
   messages: [
     { role: "system", content: systemMessage },
-    { role: "user", content: target.command },
+    { role: "user", content: fetchInfoToString(target) },
   ],
   target,
 });
+
+console.log("res", res.messages[res.messages.length - 1].content);

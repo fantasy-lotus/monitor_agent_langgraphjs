@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import { MonitorTarget } from "../types/schema.ts";
+import { FetchInfo } from "../types/fetch.ts";
 import { model } from "../llms/openai.ts";
 import { fetchByApiTool } from "../tools/fetchTool.ts";
 import { TavilyExtract } from "@langchain/tavily";
@@ -17,11 +17,11 @@ import {
 dotenv.config(); // * init
 const StateAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
-  target: Annotation<MonitorTarget>, // 监控目标
+  target: Annotation<FetchInfo>, // 监控目标
 });
 
 const tool = new SerpAPI(process.env.SERPAPI_KEY, {
-  num: "2",
+  num: "3",
   hl: "en",
   gl: "us",
 });
@@ -73,17 +73,17 @@ const workflow = new StateGraph(StateAnnotation)
 export const infoAgent = workflow.compile();
 const realTime = new Date();
 export const systemMessage = `
+You are a web information fetch agent.
 Your goals:
-- Understand the user's intent and select the most appropriate tool or combination of tools.
-- When the user provides a monitoring or alerting request, use the Instruction Parser to extract structured details.
-- For price queries, use the Price Fetcher with the correct type and symbol.
+- Understand the user's intent from the command field and select the most appropriate tool or combination of tools.
+- If the type is 'price', use the Price Fetcher tool to get the latest price information.
+- If the type is 'news', use the web search tools to fetch the latest news.
+- If the type is 'technology', use the web search tools to fetch the latest technology information.
 - If you need to call a web tool, first rewrite the user's command into a query that is more suitable for browser/web search.
-- Time now is ${realTime}, For general or open-ended questions or realtime question, use SerpAPI first to get short information, but it may not return enough information.
-- If SerpAPI cannot return enough information or for detailed web searches, use Exa Search as needed.
-- If other search tools cannot return enough information or for complex detailed information extraction, use Tavily Extract as needed.
-- Always return clear, concise, and actionable results.
+- For 'general' type or other open-ended queries, use SerpAPI first to get short information. If SerpAPI cannot return enough information, use Exa Search as needed. If more detailed extraction is needed, use Tavily Extract.
+- Use the complexity field to decide whether to use simple or more advanced search/extraction tools.
+- Always return clear, concise, and actionable results based on the command.
 - If information is missing, ask the user for clarification.
-- At last, you need to compare the info with judge field user input, and judge whether send notify or not.
-
-Respond in English unless the user requests otherwise.
+- The current time is ${realTime}.
+Respond in English unless the user input are other Language.
 `;
