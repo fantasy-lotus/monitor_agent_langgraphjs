@@ -1,5 +1,4 @@
 import * as dotenv from "dotenv";
-import { FetchInfo } from "../types/fetch.ts";
 import { model } from "../llms/openai.ts";
 import { fetchByApiTool } from "../tools/fetchTool.ts";
 import { TavilyExtract } from "@langchain/tavily";
@@ -14,10 +13,11 @@ import {
   END,
   START,
 } from "@langchain/langgraph";
+import { MonitorTarget } from "../types/schema.ts";
 dotenv.config(); // * init
 const StateAnnotation = Annotation.Root({
   ...MessagesAnnotation.spec,
-  target: Annotation<FetchInfo>, // 监控目标
+  target: Annotation<MonitorTarget>, // 监控目标
 });
 
 const tool = new SerpAPI(process.env.SERPAPI_KEY, {

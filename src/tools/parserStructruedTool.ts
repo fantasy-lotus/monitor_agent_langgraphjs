@@ -1,21 +1,22 @@
 import { tool } from "@langchain/core/tools";
 import z from "zod";
 import readline from "readline";
-import { model } from "../llms/openai";
+import { model } from "../llms/openai.ts";
 import { PromptTemplate } from "@langchain/core/prompts";
 import { StructuredOutputParser } from "langchain/output_parsers";
-import { MonitorTarget } from "../types/schema";
+import { MonitorTarget } from "../types/schema.ts";
 import { OutputParserException } from "@langchain/core/output_parsers";
 // TODO 将tool prompt和监控任务解耦，可以适配任何任务
 export const createParserTool = (schema: z.ZodTypeAny) => {
-    // 适配器：只暴露 input，schema 固定在闭包里
+  // 适配器：只暴露 input，schema 固定在闭包里
   const adapter = async ({ input }: { input: string }) => {
     return await parseUserInstruction({ input, schema });
   };
 
   return tool(adapter, {
     name: "parse_user_instruction",
-    description: "解析用户输入的监控指令提取成英文的结构化的监控目标信息,获取完后可以直接调用其他工具获取监控信息",
+    description:
+      "解析用户输入的监控指令提取成英文的结构化的监控目标信息,获取完后可以直接调用其他工具获取监控信息",
     schema: z.object({
       input: z.string().describe("用户输入的监控指令"),
     }),
@@ -68,7 +69,7 @@ const parseUserInstruction = async (content: {
     return res;
   } catch (err) {
     if (err instanceof OutputParserException) {
-      const promptFollowup = `你刚才的监控指令中缺少关键信息，请补充这些信息（如价格阈值、触发方向、监控频率等）`;
+      const promptFollowup = `你刚才的监控指令中缺少关键信息，请补充这些信息（如监控阈值、触发方向、监控频率等）`;
       const userReply = await askUserInCli(promptFollowup);
       return await parseUserInstruction({
         input: userReply + "\n  用户历史输入: " + input,
@@ -92,4 +93,3 @@ const askUserInCli = (question: string): Promise<string> => {
     });
   });
 };
-
