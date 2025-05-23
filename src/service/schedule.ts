@@ -5,9 +5,9 @@ import { StructuredOutputParser } from "langchain/output_parsers";
 import { MonitorTarget } from "../types/schema.ts";
 import { OutputParserException } from "@langchain/core/output_parsers";
 
-const PROMPT_INTRO = `你是一个监控调度助手，需要从用户输入中提取结构化的监控目标信息。
+const PROMPT_INTRO = `你是一个任务规划助手，需要从用户输入中提取结构化的任务信息。
 
-用户可能会以自然语言描述他们想监控的信息。请理解用户意图并提取关键信息。`;
+用户可能会以自然语言描述他们想进行的任务。请理解用户意图并提取关键信息。`;
 
 const PROMPT_EXAMPLES = `示例输入:
 "监控比特币价格，当超过50000美元时通知我，我的邮箱是example@email.com"

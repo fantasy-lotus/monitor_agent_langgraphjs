@@ -1,12 +1,16 @@
 import { infoAgent, systemMessage } from "../service/monitor.ts";
 import { MonitorTargetSchema } from "../types/schema.ts";
-import { parseUserInstruction } from "../agents/planAgent.ts";
+import { parseUserInstruction } from "../service/schedule.ts";
 
 const test = async (input: string) => {
   const target = await parseUserInstruction({
     input,
     schema: MonitorTargetSchema,
   });
+  if (!target) {
+    console.log("解析失败");
+    return;
+  }
   const res = await infoAgent.invoke({
     messages: [
       { role: "system", content: systemMessage },
@@ -18,5 +22,5 @@ const test = async (input: string) => {
 };
 
 await test(
-  "监控比特币价格，当超过50000美元时通知我，我的邮箱是gilgamesh258@qq.com"
+  "查寻比特币价格，大于100000，并将结果发送到我的邮箱 weather_report@example.com"
 );
