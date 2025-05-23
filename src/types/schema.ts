@@ -2,15 +2,12 @@
 import { z } from "zod";
 
 export const MonitorTargetSchema = z.object({
-  name: z.string().describe("fatch info name"),
+  name: z.string().describe("task name"),
   command: z
     .string()
     .describe("fetch command which will be search engine input"),
-  judge: z.string().optional().describe("monitor info notify judge"),
-  intervalMinutes: z
-    .number()
-    .default(20)
-    .describe("monitor task interval minutes"),
+  judge: z.string().optional().describe("info notify judge"),
+  intervalMinutes: z.number().default(20).describe("task interval minutes"),
   notifyMethod: z
     .enum(["email", "sms"])
     .default("email")
