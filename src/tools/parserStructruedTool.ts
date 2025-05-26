@@ -39,8 +39,7 @@ const PROMPT_RULES = `用户可能会前后调整监控频率或者监控目标�
 
 const PROMPT_GUIDELINES = `
 请将指令转换为适合浏览器询问的格式, 例如询问的是英伟达公司股票，command字段则应该是what is the stock price of Nvidia now
-如果用户输入缺少必要信息，请在对应字段填写null，并返回请求用户提供更多信息。`;
-
+如果用户输入缺少必要信息，请在对应字段填写null
 // 追问
 const parseUserInstruction = async (content: {
   input: string;
