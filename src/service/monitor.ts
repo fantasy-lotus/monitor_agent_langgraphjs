@@ -5,7 +5,6 @@ import { fetchByApiTool } from "../tools/fetchTool.ts";
 import { TavilyExtract } from "@langchain/tavily";
 import { ExaSearchResults } from "@langchain/exa";
 import Exa from "exa-js";
-import { SerpAPI } from "@langchain/community/tools/serpapi";
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import {
   Annotation,
@@ -20,11 +19,6 @@ const StateAnnotation = Annotation.Root({
   target: Annotation<MonitorTarget>, // 监控目标
 });
 
-const tool = new SerpAPI(process.env.SERPAPI_KEY, {
-  num: "2",
-  hl: "en",
-  gl: "us",
-});
 const extractTool = new TavilyExtract();
 const client = new Exa(process.env.EXASEARCH_API_KEY);
 const exaTool = new ExaSearchResults({
@@ -37,7 +31,7 @@ const exaTool = new ExaSearchResults({
     image: false,
   },
 });
-const tools = [fetchByApiTool, exaTool, extractTool, tool];
+const tools = [fetchByApiTool, exaTool, extractTool];
 
 const toolNodeForGraph = new ToolNode(tools);
 
@@ -78,8 +72,7 @@ Your goals:
 - When the user provides a monitoring or alerting request, use the Instruction Parser to extract structured details.
 - For price queries, use the Price Fetcher with the correct type and symbol.
 - If you need to call a web tool, first rewrite the user's command into a query that is more suitable for browser/web search.
-- Time now is ${realTime}, For general or open-ended questions or realtime question, use SerpAPI first to get short information, but it may not return enough information.
-- If SerpAPI cannot return enough information or for detailed web searches, use Exa Search as needed.
+- Time now is ${realTime}, For general or open-ended questions or realtime question, use Exa Search as needed.
 - If other search tools cannot return enough information or for complex detailed information extraction, use Tavily Extract as needed.
 - Always return clear, concise, and actionable results.
 - If information is missing, ask the user for clarification.
